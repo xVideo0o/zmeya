@@ -26,8 +26,8 @@ class Food(GameSprite):
         new_image = transform.scale(image.load(img), (w,h))
         self.images.append(new_image)
     def new_position(self):
-        self.rect.x = randint(5, 700-5-self.rect.width)
-        self.rect.y = randint(5, 500-5-self.rect.height)
+        self.rect.x = randint(0, 13)*50+5
+        self.rect.y = randint(1, 9)*50+5
         self.image = choice(self.images)
 
 class Snake(GameSprite):
@@ -54,22 +54,29 @@ class Snake(GameSprite):
             self.image = self.images[2]
 
 window = display.set_mode((700,500))
-back = (175, 227, 226)
+back = (139, 69, 19)
 display.set_caption('Змейка')
 clock = time.Clock()
-FPS = 40
+FPS = 2
+
+font.init()
+font1 = font.SysFont('Arial', 36)
+font_win = font1.render('WIN ! ! !',1,( 0, 255, 0))
+font_lose = font1.render('LOSE',1, (255, 0, 0))
 
 
 my_food = Food('ananas.png', 100, 100, 40, 40, 0)
 my_food.add_image('apelsin.png')
 my_food.add_image('tomato.png')
 
-head = Snake('golova.png', 350, 250, 50, 50, 4)
-tale = Snake('xvost.png', -100, -100, 50, 50, 0)
+head = Snake('golova.png', 350, 250, 50, 50, 50)
+
 
 game = True
 direction = 'stop'
 finish = False
+lose = False
+win = False
 eat = 0
 snake = [head]
 
@@ -95,21 +102,44 @@ while game:
         for i in range(len(snake)-1, 0, -1):
             snake[i].rect.x = snake[i-1].rect.x
             snake[i].rect.y = snake[i-1].rect.y
+            if i == 1:
+                snake[i].rect.x += 5
+                snake[i].rect.y += 5
             snake[i].reset()
 
         head.update(direction)
         head.reset()
 
-        if head.rect.x<0 or head.rect.x>700-40-5:
+        if head.rect.x<50 or head.rect.x>700-40-5:
             finish = True
-        if head.rect.y<0 or head.rect.y>500-40-5:
+            lose = True
+        if head.rect.y<50 or head.rect.y>500-40-5:
             finish = True
+            lose = True
         if head.rect.colliderect(my_food.rect):
             my_food.new_position()
             eat += 1
+            tale = Snake('xvost.png', -100, -100, 40, 40, 0)
             tale.rect.x = head.rect.x
             tale.rect.y = head.rect.y
             snake.append(tale)
+            if eat>=20:
+                finish = True
+                win = True
+            if eat % 5  == 0:
+                FPS += 1
+
+            
+
+    if lose:
+        window.blit(font_lose, (20, 45))
+    if win:
+        window.blit(font_win, (20, 45))
+    font_score = font1.render('Скушано фруктов: '+str(eat), 1,(255, 255, 255))
+    window.blit(font_score,(5,5))
+
+    
+
 
     display.update()
     clock.tick(FPS)
